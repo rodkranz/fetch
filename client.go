@@ -7,45 +7,44 @@ import (
 	"time"
 )
 
-// DefaultTimeout It is default timeout of requests by default is 30seconds
-var DefaultTimeout time.Duration
-
-func init() {
-	DefaultTimeout = time.Duration(30 * time.Second)
+func getTransport(opt *Options) *http.Transport {
+	return &http.Transport{
+		Dial: (&net.Dialer{
+			Timeout: opt.Timeout,
+		}).Dial,
+		TLSHandshakeTimeout: opt.Timeout,
+	}
 }
 
 // NewDefault get fetcher with netTransport and timeout defined
 func NewDefault() *Fetch {
-	var netTransport = &http.Transport{
-		Dial: (&net.Dialer{
-			Timeout: DefaultTimeout,
-		}).Dial,
-		TLSHandshakeTimeout: DefaultTimeout,
-	}
-	return New(netTransport)
+	return New(&Options{
+		Timeout: time.Duration(30 * time.Second),
+	})
 }
 
 // New get new fetcher and you need to specify the netTransport.
-func New(netTransport *http.Transport) *Fetch {
+func New(opt *Options) *Fetch {
 	client := &http.Client{
-		Transport: netTransport,
-		Timeout:   DefaultTimeout,
+		Transport: getTransport(opt),
+		Timeout:   opt.Timeout,
 	}
 
 	return &Fetch{
 		Client: client,
+		opt:    opt,
 	}
 }
 
 // Fetch
 type Fetch struct {
 	*http.Client
-	Header http.Header
+	opt *Options
 }
 
-func (f *Fetch) Do(request *http.Request) (*Response, error) {
-	request.Header = f.Header
-	resp, err := f.Client.Do(request)
+func (f *Fetch) Do(req *http.Request) (*Response, error) {
+	req.Header = f.opt.Header
+	resp, err := f.Client.Do(req)
 	return &Response{resp}, err
 }
 
