@@ -9,6 +9,7 @@ import (
 
 type Response struct {
 	*http.Response
+	body []byte
 }
 
 // BodyEmpty error of body is empty
@@ -16,21 +17,25 @@ var BodyEmpty error = fmt.Errorf("the body of Response is empty")
 
 // BodyIsEmpty return if body is empty or not.
 func (r *Response) BodyIsEmpty() bool {
-	return r.Body == nil
+	return r.body == nil || len(r.body) == 0
 }
 
 // Bytes return the Response in array of bytes.
-func (r *Response) Bytes() ([]byte, error) {
-	if r.BodyIsEmpty() {
+func (r *Response) Bytes() (_ []byte, err error) {
+	if !r.BodyIsEmpty() {
+		return r.body, nil
+	}
+
+	if r.Body == nil {
 		return nil, BodyEmpty
 	}
 
-	bs, err := ioutil.ReadAll(r.Body)
+	r.body, err = ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	return bs, nil
+	return r.body, nil
 }
 
 // String return the Response in string format.
@@ -45,9 +50,10 @@ func (r *Response) String() (string, error) {
 
 // Decode body result into interface object.
 func (r *Response) Decode(i interface{}) error {
-	if r.BodyIsEmpty() {
-		return BodyEmpty
+	body, err := r.Bytes()
+	if err != nil {
+		return err
 	}
 
-	return json.NewDecoder(r.Body).Decode(i)
+	return json.Unmarshal(body, i)
 }
