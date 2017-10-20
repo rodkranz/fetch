@@ -45,7 +45,7 @@ type Fetch struct {
 func (f *Fetch) Do(req *http.Request) (*Response, error) {
 	req.Header = f.opt.Header
 	resp, err := f.Client.Do(req)
-	return &Response{resp}, err
+	return &Response{Response: resp}, err
 }
 
 // Get do request and with httpVerb GET
