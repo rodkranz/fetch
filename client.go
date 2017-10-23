@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-func getTransport(opt *Options) *http.Transport {
-	return &http.Transport{
+func getTransport(opt *Options) {
+	opt.Transport = &http.Transport{
 		Dial: (&net.Dialer{
 			Timeout: opt.Timeout,
 		}).Dial,
@@ -31,8 +31,12 @@ func New(opt *Options) *Fetch {
 		}
 	}
 
+	if opt.Transport == nil {
+		getTransport(opt)
+	}
+
 	client := &http.Client{
-		Transport: getTransport(opt),
+		Transport: opt.Transport,
 		Timeout:   opt.Timeout,
 	}
 

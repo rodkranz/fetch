@@ -6,7 +6,8 @@ import (
 )
 
 type Options struct {
-	Header  http.Header
-	Timeout time.Duration
-	host    string
+	Header    http.Header
+	Timeout   time.Duration
+	host      string
+	Transport *http.Transport
 }
