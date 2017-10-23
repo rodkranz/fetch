@@ -54,6 +54,11 @@ func (f *Fetch) Do(req *http.Request) (*Response, error) {
 	}
 
 	resp, err := f.Client.Do(req)
+	if resp == nil {
+		resp = &http.Response{
+			StatusCode: http.StatusGatewayTimeout,
+		}
+	}
 	return &Response{Response: resp}, err
 }
 
