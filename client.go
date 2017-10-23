@@ -5,7 +5,6 @@ import (
 	"net"
 	"net/http"
 	"time"
-	"fmt"
 )
 
 func getTransport(opt *Options) *http.Transport {
