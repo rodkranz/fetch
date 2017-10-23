@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"time"
+	"fmt"
 )
 
 func getTransport(opt *Options) *http.Transport {
@@ -25,6 +26,12 @@ func NewDefault() *Fetch {
 
 // New get new fetcher and you need to specify the netTransport.
 func New(opt *Options) *Fetch {
+	if opt == nil {
+		opt = &Options{
+			Timeout: time.Duration(30 * time.Second),
+		}
+	}
+
 	client := &http.Client{
 		Transport: getTransport(opt),
 		Timeout:   opt.Timeout,
@@ -43,6 +50,7 @@ type Fetch struct {
 }
 
 func (f *Fetch) Do(req *http.Request) (*Response, error) {
+	if f.opt != nil
 	req.Header = f.opt.Header
 	resp, err := f.Client.Do(req)
 	return &Response{Response: resp}, err
