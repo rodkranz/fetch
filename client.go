@@ -8,7 +8,7 @@ import (
 )
 
 // DefaultTimeout defined timeout default for any request
-const DefaultTimeout = 30
+const DefaultTimeout = time.Duration(30 * time.Second)
 
 // Options default for any request in client
 type Options struct {
@@ -21,13 +21,27 @@ type Options struct {
 // DefaultOptions returns options with timeout defined
 func DefaultOptions() *Options {
 	return &Options{
-		Timeout: time.Duration(DefaultTimeout * time.Second),
+		Timeout: DefaultTimeout,
 	}
 }
 
 // NewDefault get fetcher with netTransport and timeout defined
 func NewDefault() *Fetch {
 	return New(DefaultOptions())
+}
+
+// getTransport make transport from options definitions
+func getTransport(opt *Options) {
+	if opt.Timeout.Nanoseconds() == 0 {
+		opt.Timeout = DefaultTimeout
+	}
+	
+	opt.Transport = &http.Transport{
+		Dial: (&net.Dialer{
+			Timeout: opt.Timeout,
+		}).Dial,
+		TLSHandshakeTimeout: opt.Timeout,
+	}
 }
 
 // New get new fetcher and you need to specify the netTransport.
@@ -129,18 +143,4 @@ func (f *Fetch) Options(url string, reader io.Reader) (*Response, error) {
 	}
 	
 	return f.Do(req)
-}
-
-// getTransport make transport from options definitions
-func getTransport(opt *Options) {
-	if opt.Timeout.Nanoseconds() == 0 {
-		opt.Timeout = time.Duration(DefaultTimeout * time.Second)
-	}
-	
-	opt.Transport = &http.Transport{
-		Dial: (&net.Dialer{
-			Timeout: opt.Timeout,
-		}).Dial,
-		TLSHandshakeTimeout: opt.Timeout,
-	}
 }
