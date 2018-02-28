@@ -7,39 +7,44 @@ import (
 	"time"
 )
 
-func getTransport(opt *Options) {
-	opt.Transport = &http.Transport{
-		Dial: (&net.Dialer{
-			Timeout: opt.Timeout,
-		}).Dial,
-		TLSHandshakeTimeout: opt.Timeout,
+// DefaultTimeout defined timeout default for any request
+const DefaultTimeout = 30
+
+// Options default for any request in client
+type Options struct {
+	Header    http.Header
+	Timeout   time.Duration
+	host      string
+	Transport *http.Transport
+}
+
+// DefaultOptions returns options with timeout defined
+func DefaultOptions() *Options {
+	return &Options{
+		Timeout: time.Duration(DefaultTimeout * time.Second),
 	}
 }
 
 // NewDefault get fetcher with netTransport and timeout defined
 func NewDefault() *Fetch {
-	return New(&Options{
-		Timeout: time.Duration(30 * time.Second),
-	})
+	return New(DefaultOptions())
 }
 
 // New get new fetcher and you need to specify the netTransport.
 func New(opt *Options) *Fetch {
 	if opt == nil {
-		opt = &Options{
-			Timeout: time.Duration(30 * time.Second),
-		}
+		opt = DefaultOptions()
 	}
-
+	
 	if opt.Transport == nil {
 		getTransport(opt)
 	}
-
+	
 	client := &http.Client{
 		Transport: opt.Transport,
 		Timeout:   opt.Timeout,
 	}
-
+	
 	return &Fetch{
 		Client: client,
 		opt:    opt,
@@ -56,7 +61,7 @@ func (f *Fetch) Do(req *http.Request) (*Response, error) {
 	if f.opt.Header != nil {
 		req.Header = f.opt.Header
 	}
-
+	
 	resp, err := f.Client.Do(req)
 	if resp == nil {
 		resp = &http.Response{
@@ -72,7 +77,7 @@ func (f *Fetch) Get(url string) (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	
 	return f.Do(req)
 }
 
@@ -82,7 +87,7 @@ func (f *Fetch) Post(url string, reader io.Reader) (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	
 	return f.Do(req)
 }
 
@@ -92,7 +97,7 @@ func (f *Fetch) Put(url string, reader io.Reader) (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	
 	return f.Do(req)
 }
 
@@ -102,7 +107,7 @@ func (f *Fetch) Delete(url string, reader io.Reader) (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	
 	return f.Do(req)
 }
 
@@ -112,7 +117,7 @@ func (f *Fetch) Patch(url string, reader io.Reader) (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	
 	return f.Do(req)
 }
 
@@ -122,6 +127,20 @@ func (f *Fetch) Options(url string, reader io.Reader) (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	
 	return f.Do(req)
+}
+
+// getTransport make transport from options definitions
+func getTransport(opt *Options) {
+	if opt.Timeout.Nanoseconds() == 0 {
+		opt.Timeout = time.Duration(DefaultTimeout * time.Second)
+	}
+	
+	opt.Transport = &http.Transport{
+		Dial: (&net.Dialer{
+			Timeout: opt.Timeout,
+		}).Dial,
+		TLSHandshakeTimeout: opt.Timeout,
+	}
 }

@@ -13,7 +13,7 @@ type Response struct {
 }
 
 // BodyEmpty error of body is empty
-var BodyEmpty error = fmt.Errorf("the body of Response is empty")
+var BodyEmpty = fmt.Errorf("the body of response is empty")
 
 // BodyIsEmpty return if body is empty or not.
 func (r *Response) BodyIsEmpty() bool {
