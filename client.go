@@ -14,7 +14,7 @@ const DefaultTimeout = time.Duration(30 * time.Second)
 type Options struct {
 	Header    http.Header
 	Timeout   time.Duration
-	host      string
+	Host      string
 	Transport *http.Transport
 }
 
@@ -61,19 +61,19 @@ func New(opt *Options) *Fetch {
 	
 	return &Fetch{
 		Client: client,
-		opt:    opt,
+		Option: opt,
 	}
 }
 
 // Fetch
 type Fetch struct {
 	*http.Client
-	opt *Options
+	Option *Options
 }
 
 func (f *Fetch) Do(req *http.Request) (*Response, error) {
-	if f.opt.Header != nil {
-		req.Header = f.opt.Header
+	if f.Option.Header != nil {
+		req.Header = f.Option.Header
 	}
 	
 	resp, err := f.Client.Do(req)
