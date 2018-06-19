@@ -17,6 +17,7 @@ var BodyEmpty = fmt.Errorf("the body of response is empty")
 
 // BodyIsEmpty return if body is empty or not.
 func (r *Response) BodyIsEmpty() bool {
+	fmt.Println("r", r)
 	return r.body == nil || len(r.body) == 0
 }
 
@@ -25,16 +26,16 @@ func (r *Response) Bytes() (_ []byte, err error) {
 	if !r.BodyIsEmpty() {
 		return r.body, nil
 	}
-	
+
 	if r.Body == nil {
 		return nil, BodyEmpty
 	}
-	
+
 	r.body, err = ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return r.body, nil
 }
 
@@ -44,7 +45,7 @@ func (r *Response) String() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	
+
 	return string(bs), nil
 }
 
@@ -54,6 +55,15 @@ func (r *Response) Decode(i interface{}) error {
 	if err != nil {
 		return err
 	}
-	
+
 	return json.Unmarshal(body, i)
+}
+
+func newErrorResponse(status int, msg string, err error) (*Response, error) {
+	return &Response{
+		Response: &http.Response{
+			StatusCode: status,
+			Status:     http.StatusText(status),
+		},
+	}, fmt.Errorf(msg, err)
 }
