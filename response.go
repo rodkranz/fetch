@@ -17,7 +17,6 @@ var BodyEmpty = fmt.Errorf("the body of response is empty")
 
 // BodyIsEmpty return if body is empty or not.
 func (r *Response) BodyIsEmpty() bool {
-	fmt.Println("r", r)
 	return r.body == nil || len(r.body) == 0
 }
 
