@@ -97,16 +97,6 @@ func (f *Fetch) Get(url string) (*Response, error) {
 	return f.Do(req)
 }
 
-// Get do request and with httpVerb GET and with Args
-func (f *Fetch) GetArgs(url string, reader io.Reader) (*Response, error) {
-	req, err := http.NewRequest(http.MethodGet, url, reader)
-	if err != nil {
-		return newErrorResponse(http.StatusNoContent, "couldn't request GETArgs: %s", err)
-	}
-
-	return f.Do(req)
-}
-
 // Post do request and with httpVerb POST
 func (f *Fetch) Post(url string, reader io.Reader) (*Response, error) {
 	req, err := http.NewRequest(http.MethodPost, url, reader)
