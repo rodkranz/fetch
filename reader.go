@@ -2,50 +2,19 @@ package fetch
 
 import (
 	"encoding/json"
-	"io"
-	"bytes"
 	"fmt"
+	"strings"
 )
 
-type StructIO struct {
-	original []byte
-	b        []byte
-	reader   io.Reader
-	writer   io.Writer
-
-	err error
+// NewStructIO deprecated it will be replaced by NewReader
+func NewStructIO(i interface{}) (*strings.Reader) {
+	return NewReader(i)
 }
 
-func NewStructIO(i interface{}) (*StructIO) {
+func NewReader(i interface{}) (*strings.Reader) {
 	bs, err := json.Marshal(i)
-	return &StructIO{b: bs, original: bs, err: err}
-}
-
-func (s *StructIO) Flush() {
-	s.b = make([]byte, len(s.original))
-	copy(s.b, s.original)
-}
-
-func (s *StructIO) Write(p []byte) (n int, err error) {
-	if s.writer == nil {
-		s.writer = bytes.NewBuffer(s.b)
+	if err != nil {
+		return strings.NewReader(fmt.Sprintf("error to read: %T", i))
 	}
-
-	return s.writer.Write(p)
-}
-
-func (s *StructIO) Read(p []byte) (n int, err error) {
-	if s.reader == nil {
-		s.reader = bytes.NewReader(s.b)
-	}
-
-	return s.reader.Read(p)
-}
-
-func (s *StructIO) Error() (string) {
-	return fmt.Sprintf("error struct io: %s", s.err)
-}
-
-func (s *StructIO) HasError() (bool) {
-	return s.err != nil
+	return strings.NewReader(string(bs))
 }

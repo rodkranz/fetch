@@ -22,6 +22,7 @@ type Options struct {
 func DefaultOptions() *Options {
 	return &Options{
 		Timeout: DefaultTimeout,
+		Header: http.Header{},
 	}
 }
 
@@ -55,7 +56,6 @@ func New(opt *Options) *Fetch {
 	}
 
 	client := &http.Client{
-		Transport: opt.Transport,
 		Timeout:   opt.Timeout,
 	}
 
