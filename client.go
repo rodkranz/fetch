@@ -5,8 +5,9 @@ import (
 	"net"
 	"net/http"
 	"time"
-	"golang.org/x/net/context/ctxhttp"
 	"context"
+
+	"golang.org/x/net/context/ctxhttp"
 )
 
 // DefaultTimeout defined timeout default for any request
