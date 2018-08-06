@@ -5,6 +5,8 @@ import (
 	"net"
 	"net/http"
 	"time"
+	"golang.org/x/net/context/ctxhttp"
+	"context"
 )
 
 // DefaultTimeout defined timeout default for any request
@@ -22,7 +24,7 @@ type Options struct {
 func DefaultOptions() *Options {
 	return &Options{
 		Timeout: DefaultTimeout,
-		Header: http.Header{},
+		Header:  http.Header{},
 	}
 }
 
@@ -56,7 +58,7 @@ func New(opt *Options) *Fetch {
 	}
 
 	client := &http.Client{
-		Timeout:   opt.Timeout,
+		Timeout: opt.Timeout,
 	}
 
 	return &Fetch{
@@ -71,12 +73,19 @@ type Fetch struct {
 	Option *Options
 }
 
+func (f *Fetch) CtxDo(ctx context.Context, req *http.Request) (*Response, error) {
+	return f.makeResponse(ctxhttp.Do(ctx, f.Client, req))
+}
+
 func (f *Fetch) Do(req *http.Request) (*Response, error) {
 	if f.Option.Header != nil {
 		req.Header = f.Option.Header
 	}
 
-	resp, err := f.Client.Do(req)
+	return f.makeResponse(f.Client.Do(req))
+}
+
+func (f Fetch) makeResponse(resp *http.Response, err error) (*Response, error) {
 	if resp == nil {
 		resp = &http.Response{
 			StatusCode: http.StatusGatewayTimeout,
@@ -85,6 +94,10 @@ func (f *Fetch) Do(req *http.Request) (*Response, error) {
 	}
 
 	return &Response{Response: resp}, err
+}
+
+func (f *Fetch) WithGetContext(ctx context.Context, url string) (*Response, error) {
+	return f.makeResponse(ctxhttp.Get(ctx, f.Client, url))
 }
 
 // Get do request and with httpVerb GET
@@ -97,6 +110,14 @@ func (f *Fetch) Get(url string) (*Response, error) {
 	return f.Do(req)
 }
 
+func (f *Fetch) WithPostContext(ctx context.Context, url string, reader io.Reader) (*Response, error) {
+	req, err := http.NewRequest(http.MethodPost, url, reader)
+	if err != nil {
+		return newErrorResponse(http.StatusNoContent, "couldn't request POST: %s", err)
+	}
+	return f.makeResponse(ctxhttp.Do(ctx, f.Client, req))
+}
+
 // Post do request and with httpVerb POST
 func (f *Fetch) Post(url string, reader io.Reader) (*Response, error) {
 	req, err := http.NewRequest(http.MethodPost, url, reader)
@@ -107,6 +128,14 @@ func (f *Fetch) Post(url string, reader io.Reader) (*Response, error) {
 	return f.Do(req)
 }
 
+func (f *Fetch) WithPutContext(ctx context.Context, url string, reader io.Reader) (*Response, error) {
+	req, err := http.NewRequest(http.MethodPut, url, reader)
+	if err != nil {
+		return newErrorResponse(http.StatusNoContent, "couldn't request PUT: %s", err)
+	}
+	return f.makeResponse(ctxhttp.Do(ctx, f.Client, req))
+}
+
 // Put do request and with httpVerb PUT
 func (f *Fetch) Put(url string, reader io.Reader) (*Response, error) {
 	req, err := http.NewRequest(http.MethodPut, url, reader)
@@ -115,6 +144,14 @@ func (f *Fetch) Put(url string, reader io.Reader) (*Response, error) {
 	}
 
 	return f.Do(req)
+}
+
+func (f *Fetch) WithDeleteContext(ctx context.Context, url string, reader io.Reader) (*Response, error) {
+	req, err := http.NewRequest(http.MethodDelete, url, reader)
+	if err != nil {
+		return newErrorResponse(http.StatusNoContent, "couldn't request DELETE: %s", err)
+	}
+	return f.makeResponse(ctxhttp.Do(ctx, f.Client, req))
 }
 
 // Delete do request and with httpVerb DELETE
