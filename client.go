@@ -74,7 +74,7 @@ type Fetch struct {
 	Option *Options
 }
 
-func (f *Fetch) CtxDo(ctx context.Context, req *http.Request) (*Response, error) {
+func (f *Fetch) DoWithContext(ctx context.Context, req *http.Request) (*Response, error) {
 	return f.makeResponse(ctxhttp.Do(ctx, f.Client, req))
 }
 
@@ -97,7 +97,7 @@ func (f Fetch) makeResponse(resp *http.Response, err error) (*Response, error) {
 	return &Response{Response: resp}, err
 }
 
-func (f *Fetch) WithGetContext(ctx context.Context, url string) (*Response, error) {
+func (f *Fetch) GetWithContext(ctx context.Context, url string) (*Response, error) {
 	return f.makeResponse(ctxhttp.Get(ctx, f.Client, url))
 }
 
@@ -111,7 +111,7 @@ func (f *Fetch) Get(url string) (*Response, error) {
 	return f.Do(req)
 }
 
-func (f *Fetch) WithPostContext(ctx context.Context, url string, reader io.Reader) (*Response, error) {
+func (f *Fetch) PostWithContext(ctx context.Context, url string, reader io.Reader) (*Response, error) {
 	req, err := http.NewRequest(http.MethodPost, url, reader)
 	if err != nil {
 		return newErrorResponse(http.StatusNoContent, "couldn't request POST: %s", err)
@@ -129,7 +129,7 @@ func (f *Fetch) Post(url string, reader io.Reader) (*Response, error) {
 	return f.Do(req)
 }
 
-func (f *Fetch) WithPutContext(ctx context.Context, url string, reader io.Reader) (*Response, error) {
+func (f *Fetch) PutWithContext(ctx context.Context, url string, reader io.Reader) (*Response, error) {
 	req, err := http.NewRequest(http.MethodPut, url, reader)
 	if err != nil {
 		return newErrorResponse(http.StatusNoContent, "couldn't request PUT: %s", err)
@@ -147,7 +147,7 @@ func (f *Fetch) Put(url string, reader io.Reader) (*Response, error) {
 	return f.Do(req)
 }
 
-func (f *Fetch) WithDeleteContext(ctx context.Context, url string, reader io.Reader) (*Response, error) {
+func (f *Fetch) DeleteWithContext(ctx context.Context, url string, reader io.Reader) (*Response, error) {
 	req, err := http.NewRequest(http.MethodDelete, url, reader)
 	if err != nil {
 		return newErrorResponse(http.StatusNoContent, "couldn't request DELETE: %s", err)
@@ -165,7 +165,7 @@ func (f *Fetch) Delete(url string, reader io.Reader) (*Response, error) {
 	return f.Do(req)
 }
 
-// Delete do request and with httpVerb DELETE
+// Patch do request and with httpVerb PATCH
 func (f *Fetch) Patch(url string, reader io.Reader) (*Response, error) {
 	req, err := http.NewRequest(http.MethodPatch, url, reader)
 	if err != nil {
@@ -175,7 +175,16 @@ func (f *Fetch) Patch(url string, reader io.Reader) (*Response, error) {
 	return f.Do(req)
 }
 
-// Delete do request and with httpVerb DELETE
+// PatchWithContext do request and with httpVerb PATCH
+func (f *Fetch) PatchWithContext(ctx context.Context, url string, reader io.Reader) (*Response, error) {
+	req, err := http.NewRequest(http.MethodPatch, url, reader)
+	if err != nil {
+		return newErrorResponse(http.StatusNoContent, "couldn't request PATCH: %s", err)
+	}
+	return f.makeResponse(ctxhttp.Do(ctx, f.Client, req))
+}
+
+// Options do request and with httpVerb DELETE
 func (f *Fetch) Options(url string, reader io.Reader) (*Response, error) {
 	req, err := http.NewRequest(http.MethodOptions, url, reader)
 	if err != nil {
@@ -183,4 +192,13 @@ func (f *Fetch) Options(url string, reader io.Reader) (*Response, error) {
 	}
 
 	return f.Do(req)
+}
+
+// OptionsWithContext do request and with httpVerb OPTIONS
+func (f *Fetch) OptionsWithContext(ctx context.Context, url string, reader io.Reader) (*Response, error) {
+	req, err := http.NewRequest(http.MethodOptions, url, reader)
+	if err != nil {
+		return newErrorResponse(http.StatusNoContent, "couldn't request OPTIONS: %s", err)
+	}
+	return f.makeResponse(ctxhttp.Do(ctx, f.Client, req))
 }
