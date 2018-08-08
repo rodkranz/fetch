@@ -75,6 +75,10 @@ type Fetch struct {
 }
 
 func (f *Fetch) DoWithContext(ctx context.Context, req *http.Request) (*Response, error) {
+	if f.Option.Header != nil {
+		req.Header = f.Option.Header
+	}
+
 	return f.makeResponse(ctxhttp.Do(ctx, f.Client, req))
 }
 
@@ -134,7 +138,8 @@ func (f *Fetch) PutWithContext(ctx context.Context, url string, reader io.Reader
 	if err != nil {
 		return newErrorResponse(http.StatusNoContent, "couldn't request PUT: %s", err)
 	}
-	return f.makeResponse(ctxhttp.Do(ctx, f.Client, req))
+	return f.DoWithContext(ctx, req)
+	//return f.makeResponse(ctxhttp.Do(ctx, f.Client, req))
 }
 
 // Put do request and with httpVerb PUT
