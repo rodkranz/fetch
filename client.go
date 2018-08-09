@@ -74,6 +74,16 @@ type Fetch struct {
 	Option *Options
 }
 
+
+func (f *Fetch) IsJSON() (*Fetch) {
+	if f.Option.Header == nil {
+		f.Option.Header = http.Header{}
+	}
+
+	f.Option.Header.Set("Content-Type", "application/json")
+	return f
+}
+
 func (f *Fetch) DoWithContext(ctx context.Context, req *http.Request) (*Response, error) {
 	if f.Option.Header != nil {
 		req.Header = f.Option.Header
