@@ -8,8 +8,7 @@ import (
 	"context"
 
 	"golang.org/x/net/context/ctxhttp"
-	"fmt"
-)
+	)
 
 // DefaultTimeout defined timeout default for any request
 const DefaultTimeout = time.Duration(30 * time.Second)
@@ -89,7 +88,6 @@ func (f *Fetch) DoWithContext(ctx context.Context, req *http.Request) (*Response
 		req.Header = f.Option.Header
 	}
 
-	fmt.Println(req.Header)
 	return f.makeResponse(ctxhttp.Do(ctx, f.Client, req))
 }
 
