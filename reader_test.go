@@ -1,10 +1,10 @@
 package fetch
 
 import (
-	"testing"
+	"fmt"
 	"io/ioutil"
 	"strings"
-	"fmt"
+	"testing"
 )
 
 var readerTest = []struct {

@@ -1,15 +1,15 @@
 package fetch
 
 import (
-	"testing"
-	"net/http/httptest"
-	"net/http"
-	"strings"
-	"fmt"
-	"log"
-	"time"
-	"io"
 	"context"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+	"time"
 )
 
 // NoBody is an io.ReadCloser with no bytes. Read always returns EOF

@@ -1,13 +1,13 @@
 package fetch
 
 import (
-	"testing"
 	"bytes"
+	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
-	"log"
 	"strings"
-	"fmt"
+	"testing"
 )
 
 func TestResponse_BodyIsEmpty(t *testing.T) {
