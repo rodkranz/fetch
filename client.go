@@ -41,9 +41,9 @@ func getTransport(opt *Options) {
 	}
 
 	opt.Transport = &http.Transport{
-		Dial: (&net.Dialer{
+		DialContext: (&net.Dialer{
 			Timeout: opt.Timeout,
-		}).Dial,
+		}).DialContext,
 		TLSHandshakeTimeout: opt.Timeout,
 	}
 }
