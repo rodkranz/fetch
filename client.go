@@ -83,24 +83,6 @@ func (f *Fetch) IsJSON() *Fetch {
 	return f
 }
 
-// DoWithContext execute any kind of request passing context
-func (f *Fetch) DoWithContext(ctx context.Context, req *http.Request) (*Response, error) {
-	if f.Option.Header != nil {
-		req.Header = f.Option.Header
-	}
-
-	return f.makeResponse(ctxhttp.Do(ctx, f.Client, req))
-}
-
-// Do execute any kind of request
-func (f *Fetch) Do(req *http.Request) (*Response, error) {
-	if f.Option.Header != nil {
-		req.Header = f.Option.Header
-	}
-
-	return f.makeResponse(f.Client.Do(req))
-}
-
 // makeResponse format response from generic request
 func (f Fetch) makeResponse(resp *http.Response, err error) (*Response, error) {
 	if resp == nil {
@@ -111,6 +93,15 @@ func (f Fetch) makeResponse(resp *http.Response, err error) (*Response, error) {
 	}
 
 	return &Response{Response: resp}, err
+}
+
+// Do execute any kind of request
+func (f *Fetch) Do(req *http.Request) (*Response, error) {
+	if f.Option.Header != nil {
+		req.Header = f.Option.Header
+	}
+
+	return f.makeResponse(f.Client.Do(req))
 }
 
 // Get do request with HTTP using HTTP Verb GET
@@ -168,6 +159,15 @@ func (f *Fetch) Options(url string, reader io.Reader) (*Response, error) {
 		return newErrorResponse(http.StatusNoContent, "couldn't request OPTIONS: %s", err)
 	}
 	return f.Do(req)
+}
+
+// DoWithContext execute any kind of request passing context
+func (f *Fetch) DoWithContext(ctx context.Context, req *http.Request) (*Response, error) {
+	if f.Option.Header != nil {
+		req.Header = f.Option.Header
+	}
+
+	return f.makeResponse(ctxhttp.Do(ctx, f.Client, req))
 }
 
 // GetWithContext execute DoWithContext but define request to method GET

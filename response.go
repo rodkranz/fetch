@@ -7,6 +7,9 @@ import (
 	"net/http"
 )
 
+// ErrEmptyBody returns when there is no body to read
+var ErrEmptyBody = fmt.Errorf("the body of response is empty")
+
 // Response helper work with response from http.Client
 type Response struct {
 	*http.Response
@@ -20,20 +23,18 @@ func (r *Response) BodyIsEmpty() bool {
 
 // Bytes return the Response in array of bytes.
 func (r *Response) Bytes() (_ []byte, err error) {
+	// if body is not empty return itself
 	if !r.BodyIsEmpty() {
 		return r.body, nil
 	}
 
-	if r.Body == nil {
-		return nil, fmt.Errorf("the body of response is empty")
+	// if Body is empty
+	if r.Response == nil || r.Response.Body == nil {
+		return nil, ErrEmptyBody
 	}
 
 	r.body, err = ioutil.ReadAll(r.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return r.body, nil
+	return r.body, err
 }
 
 // String return the Response in string format.
