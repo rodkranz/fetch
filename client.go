@@ -1,11 +1,11 @@
 package fetch
 
 import (
+	"context"
 	"io"
 	"net"
 	"net/http"
 	"time"
-	"context"
 
 	"golang.org/x/net/context/ctxhttp"
 )
@@ -74,7 +74,7 @@ type Fetch struct {
 }
 
 // IsJSON add Content-Type as JSON in header.
-func (f *Fetch) IsJSON() (*Fetch) {
+func (f *Fetch) IsJSON() *Fetch {
 	if f.Option.Header == nil {
 		f.Option.Header = http.Header{}
 	}
