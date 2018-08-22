@@ -7,13 +7,11 @@ import (
 	"net/http"
 )
 
+// Response helper work with response from http.Client
 type Response struct {
 	*http.Response
 	body []byte
 }
-
-// BodyEmpty error of body is empty
-var BodyEmpty = fmt.Errorf("the body of response is empty")
 
 // BodyIsEmpty return if body is empty or not.
 func (r *Response) BodyIsEmpty() bool {
@@ -27,7 +25,7 @@ func (r *Response) Bytes() (_ []byte, err error) {
 	}
 
 	if r.Body == nil {
-		return nil, BodyEmpty
+		return nil, fmt.Errorf("the body of response is empty")
 	}
 
 	r.body, err = ioutil.ReadAll(r.Body)
@@ -58,6 +56,8 @@ func (r *Response) Decode(i interface{}) error {
 	return json.Unmarshal(body, i)
 }
 
+// newErrorResponse return response if has any kind of error
+// could be from request or execution of Http.Client
 func newErrorResponse(status int, msg string, err error) (*Response, error) {
 	return &Response{
 		Response: &http.Response{
