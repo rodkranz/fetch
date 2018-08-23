@@ -54,7 +54,7 @@ response, err := client.Get("http://www.google.com/")
 opt := fetch.Options{
     Header: http.Header{
         "Content-Type": []string{"application/json"},
-        "User-Agent":   []string{"OLX-Group"},
+        "User-Agent":   []string{"XPTO-Agent-user"},
     },
 }
 
