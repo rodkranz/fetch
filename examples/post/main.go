@@ -24,7 +24,5 @@ func main() {
 		log.Fatalf("could not login because: %s", err)
 	}
 
-	body := fetch.MustString(rsp.String())
-
-	log.Println(body)
+	log.Println(rsp.String())
 }

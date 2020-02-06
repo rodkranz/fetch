@@ -7,10 +7,10 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
-	"reflect"
 )
 
 // NoBody is an io.ReadCloser with no bytes. Read always returns EOF
@@ -93,7 +93,7 @@ func TestFetch_IsJSON(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(handlerContentTypeTest))
 		defer server.Close()
 
-		f.Get(server.URL)
+		f.Get(server.URL, nil)
 	})
 
 	t.Run("Test-NoneHeaderIsJSON", func(t *testing.T) {
@@ -102,7 +102,7 @@ func TestFetch_IsJSON(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(handlerContentTypeTest))
 		defer server.Close()
 
-		f.Get(server.URL)
+		f.Get(server.URL, nil)
 	})
 }
 
@@ -116,13 +116,13 @@ func TestMakeResponse(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		res, err := NewDefault().Get(ts.URL)
+		res, err := NewDefault().Get(ts.URL, nil)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		if bs, _ := res.String(); !strings.EqualFold(body, bs) {
-			t.Errorf("Expected body [%s], but got [%s]", body, bs)
+		if s := res.String(); !strings.EqualFold(body, s) {
+			t.Errorf("Expected body [%s], but got [%s]", body, s)
 		}
 
 		if http.StatusNotFound != res.StatusCode {
@@ -136,7 +136,7 @@ func TestMakeResponse(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		res, err := New(&Options{Timeout: time.Duration(10 * time.Millisecond)}).Get(ts.URL)
+		res, err := New(&Options{Timeout: time.Duration(10 * time.Millisecond)}).Get(ts.URL, nil)
 		if err == nil {
 			t.Error("Expected timeout error, but got none error")
 		}
@@ -161,7 +161,7 @@ func TestFetch_Get(t *testing.T) {
 
 	f := NewDefault()
 	t.Run("Test-Method-With-Context-GET", func(t *testing.T) {
-		rsp, err := f.GetWithContext(context.Background(), s.URL)
+		rsp, err := f.GetWithContext(context.Background(), s.URL, nil)
 		if err != nil {
 			t.Errorf("Expected none error, but got [%s]", err)
 		}
@@ -171,7 +171,7 @@ func TestFetch_Get(t *testing.T) {
 		}
 	})
 	t.Run("Test-Method-With-Context-GET-And-Error", func(t *testing.T) {
-		rsp, err := f.GetWithContext(context.Background(), "http://[::1]a")
+		rsp, err := f.GetWithContext(context.Background(), "http://[::1]a", nil)
 		if err == nil {
 			t.Error("Expected error parse url, but got none error")
 		}
@@ -185,7 +185,7 @@ func TestFetch_Get(t *testing.T) {
 		}
 	})
 	t.Run("Test-Method-GET", func(t *testing.T) {
-		rsp, err := f.Get(s.URL)
+		rsp, err := f.Get(s.URL, nil)
 		if err != nil {
 			t.Errorf("Expected none error, but got [%s]", err)
 		}
@@ -195,7 +195,7 @@ func TestFetch_Get(t *testing.T) {
 		}
 	})
 	t.Run("Test-Method-GET-And-Error", func(t *testing.T) {
-		rsp, err := f.Get("http://[::1]a")
+		rsp, err := f.Get("http://[::1]a", nil)
 		if err == nil {
 			t.Error("Expected error parse url, but got none error")
 		}
@@ -224,7 +224,7 @@ func TestFetch(t *testing.T) {
 	f := NewDefault()
 
 	t.Run("Test-Method-GET", func(t *testing.T) {
-		rsp, err := f.Get(s.URL)
+		rsp, err := f.Get(s.URL, nil)
 		if err != nil {
 			t.Errorf("Expected none error, but got [%s]", err)
 		}
@@ -234,7 +234,7 @@ func TestFetch(t *testing.T) {
 		}
 	})
 	t.Run("Test-Method-GET-With-Context", func(t *testing.T) {
-		rsp, err := f.GetWithContext(context.Background(), s.URL)
+		rsp, err := f.GetWithContext(context.Background(), s.URL, nil)
 		if err != nil {
 			t.Errorf("Expected none error, but got [%s]", err)
 		}
@@ -321,4 +321,3 @@ func TestFetch(t *testing.T) {
 	}
 
 }
-

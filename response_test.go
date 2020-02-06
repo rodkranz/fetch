@@ -58,7 +58,7 @@ func TestResponse_Bytes(t *testing.T) {
 	t.Run("Test-BytesBodyRequested", func(t *testing.T) {
 		body := []byte("Lorem Ipsum")
 
-		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.Write(body) }))
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write(body) }))
 		defer ts.Close()
 
 		res, err := http.Get(ts.URL)
@@ -84,7 +84,28 @@ func TestResponse_Bytes(t *testing.T) {
 func TestResponse_String(t *testing.T) {
 	t.Run("Test-StringNil", func(t *testing.T) {
 		res := Response{body: nil}
-		output, err := res.String()
+		output := res.String()
+		if len(output) > 0 {
+			t.Errorf("Expecetd none result bytes, but got [%s]", output)
+		}
+	})
+	t.Run("Test-StringCached", func(t *testing.T) {
+		body := "Lorem Ipsum"
+		res := Response{body: []byte(body)}
+		output := res.String()
+		if len(output) <= 0 {
+			t.Errorf("Expecetd result bytes, but got [%s]", output)
+		}
+		if !strings.EqualFold(body, output) {
+			t.Errorf("Expecetd [%s] as bytes, but got [%s] as bytes", body, output)
+		}
+	})
+}
+
+func TestResponse_ToString(t *testing.T) {
+	t.Run("Test-ToStringNil", func(t *testing.T) {
+		res := Response{body: nil}
+		output, err := res.ToString()
 		if err == nil {
 			t.Errorf("Expecetd error [%s], but got nil", ErrEmptyBody)
 		}
@@ -95,10 +116,10 @@ func TestResponse_String(t *testing.T) {
 			t.Errorf("Expecetd none result bytes, but got [%s]", output)
 		}
 	})
-	t.Run("Test-StringCached", func(t *testing.T) {
+	t.Run("Test-ToStringCached", func(t *testing.T) {
 		body := "Lorem Ipsum"
 		res := Response{body: []byte(body)}
-		output, err := res.String()
+		output, err := res.ToString()
 		if err != nil {
 			t.Errorf("Expecetd nil error, but got [%s]", err)
 		}
@@ -151,6 +172,12 @@ func TestNewErrorResponse(t *testing.T) {
 	errTest := fmt.Errorf("nobody test")
 
 	rsp, err := newErrorResponse(status, msg, errTest)
+	if rsp == nil {
+		t.Fatalf("Expecetd response not nil, but got nil")
+	}
+	if err == nil {
+		t.Fatalf("Expecetd error not nil, but got nil")
+	}
 	if status != rsp.StatusCode {
 		t.Errorf("Expecetd status code [%d], but got status code [%d]", status, rsp.StatusCode)
 	}

@@ -105,8 +105,8 @@ func (f *Fetch) Do(req *http.Request) (*Response, error) {
 }
 
 // Get do request with HTTP using HTTP Verb GET
-func (f *Fetch) Get(url string) (*Response, error) {
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+func (f *Fetch) Get(url string, reader io.Reader) (*Response, error) {
+	req, err := http.NewRequest(http.MethodGet, url, reader)
 	if err != nil {
 		return newErrorResponse(http.StatusNoContent, "couldn't request GET: %s", err)
 	}
@@ -114,7 +114,7 @@ func (f *Fetch) Get(url string) (*Response, error) {
 	return f.Do(req)
 }
 
-// Post do request with HTTP using HTTP Verb GET
+// Post do request with HTTP using HTTP Verb POST
 func (f *Fetch) Post(url string, reader io.Reader) (*Response, error) {
 	req, err := http.NewRequest(http.MethodPost, url, reader)
 	if err != nil {
@@ -171,8 +171,8 @@ func (f *Fetch) DoWithContext(ctx context.Context, req *http.Request) (*Response
 }
 
 // GetWithContext execute DoWithContext but define request to method GET
-func (f *Fetch) GetWithContext(ctx context.Context, url string) (*Response, error) {
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+func (f *Fetch) GetWithContext(ctx context.Context, url string, reader io.Reader) (*Response, error) {
+	req, err := http.NewRequest(http.MethodGet, url, reader)
 	if err != nil {
 		return newErrorResponse(http.StatusNoContent, "couldn't request GET: %s", err)
 	}
