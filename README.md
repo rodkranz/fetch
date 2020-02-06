@@ -45,7 +45,7 @@ go test -v --cover
     
 ```go
 client := fetch.NewDefault()
-response, err := client.Get("http://www.google.com/")
+response, err := client.Get("http://www.google.com/", nil)
 ``` 
 
 #### Custom Headers
@@ -59,7 +59,7 @@ opt := fetch.Options{
 }
 
 f := fetch.New(&opt)
-rsp, err := f.GetWithContext(context.Background(), "http://www.google.com")
+rsp, err := f.GetWithContext(context.Background(), "http://www.google.com", nil)
 ```
 
 #### Simple JSON POST

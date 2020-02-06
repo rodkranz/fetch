@@ -18,7 +18,7 @@ func main() {
 	}
 
 	f := fetch.New(&opt)
-	rsp, err := f.GetWithContext(context.Background(), "http://www.google.com")
+	rsp, err := f.GetWithContext(context.Background(), "http://www.google.com", nil)
 	if err != nil {
 		log.Fatalf("could not fetch data from target because: %s", err)
 	}

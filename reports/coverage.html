@@ -1,0 +1,468 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/rodkranz/fetch/client.go (100.0%)</option>
+				
+				<option value="file1">github.com/rodkranz/fetch/reader.go (100.0%)</option>
+				
+				<option value="file2">github.com/rodkranz/fetch/response.go (95.0%)</option>
+				
+				<option value="file3">github.com/rodkranz/fetch/tools.go (100.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package fetch
+
+import (
+        "context"
+        "io"
+        "net"
+        "net/http"
+        "time"
+
+        "golang.org/x/net/context/ctxhttp"
+)
+
+// DefaultTimeout defined timeout default for any request
+const DefaultTimeout = time.Duration(30 * time.Second)
+
+// Options default for any request in client
+type Options struct {
+        Header    http.Header
+        Timeout   time.Duration
+        Host      string
+        Transport *http.Transport
+}
+
+// DefaultOptions returns options with timeout defined
+func DefaultOptions() *Options <span class="cov8" title="1">{
+        return &amp;Options{
+                Timeout: DefaultTimeout,
+                Header:  http.Header{},
+        }
+}</span>
+
+// NewDefault get fetcher with netTransport and timeout defined
+func NewDefault() *Fetch <span class="cov8" title="1">{
+        return New(DefaultOptions())
+}</span>
+
+// getTransport make transport from options definitions
+func getTransport(opt *Options) <span class="cov8" title="1">{
+        if opt.Timeout.Nanoseconds() == 0 </span><span class="cov8" title="1">{
+                opt.Timeout = DefaultTimeout
+        }</span>
+
+        <span class="cov8" title="1">opt.Transport = &amp;http.Transport{
+                DialContext: (&amp;net.Dialer{
+                        Timeout: opt.Timeout,
+                }).DialContext,
+                TLSHandshakeTimeout: opt.Timeout,
+        }</span>
+}
+
+// New get new fetcher and you need to specify the netTransport.
+func New(opt *Options) *Fetch <span class="cov8" title="1">{
+        if opt == nil </span><span class="cov8" title="1">{
+                opt = DefaultOptions()
+        }</span>
+
+        <span class="cov8" title="1">if opt.Transport == nil </span><span class="cov8" title="1">{
+                getTransport(opt)
+        }</span>
+
+        <span class="cov8" title="1">return &amp;Fetch{
+                Client: &amp;http.Client{
+                        Timeout:   opt.Timeout,
+                        Transport: opt.Transport,
+                },
+                Option: opt,
+        }</span>
+}
+
+// Fetch use http default but defined with a timeout.
+type Fetch struct {
+        *http.Client
+        Option *Options
+}
+
+// IsJSON add Content-Type as JSON in header.
+func (f *Fetch) IsJSON() *Fetch <span class="cov8" title="1">{
+        if f.Option.Header == nil </span><span class="cov8" title="1">{
+                f.Option.Header = http.Header{}
+        }</span>
+
+        <span class="cov8" title="1">f.Option.Header.Set("Content-Type", "application/json")
+        return f</span>
+}
+
+// makeResponse format response from generic request
+func (f Fetch) makeResponse(resp *http.Response, err error) (*Response, error) <span class="cov8" title="1">{
+        if resp == nil </span><span class="cov8" title="1">{
+                resp = &amp;http.Response{
+                        StatusCode: http.StatusGatewayTimeout,
+                        Status:     http.StatusText(http.StatusGatewayTimeout),
+                }
+        }</span>
+
+        <span class="cov8" title="1">return &amp;Response{Response: resp}, err</span>
+}
+
+// Do execute any kind of request
+func (f *Fetch) Do(req *http.Request) (*Response, error) <span class="cov8" title="1">{
+        if f.Option.Header != nil </span><span class="cov8" title="1">{
+                req.Header = f.Option.Header
+        }</span>
+
+        <span class="cov8" title="1">return f.makeResponse(f.Client.Do(req))</span>
+}
+
+// Get do request with HTTP using HTTP Verb GET
+func (f *Fetch) Get(url string, reader io.Reader) (*Response, error) <span class="cov8" title="1">{
+        req, err := http.NewRequest(http.MethodGet, url, reader)
+        if err != nil </span><span class="cov8" title="1">{
+                return newErrorResponse(http.StatusNoContent, "couldn't request GET: %s", err)
+        }</span>
+
+        <span class="cov8" title="1">return f.Do(req)</span>
+}
+
+// Post do request with HTTP using HTTP Verb POST
+func (f *Fetch) Post(url string, reader io.Reader) (*Response, error) <span class="cov8" title="1">{
+        req, err := http.NewRequest(http.MethodPost, url, reader)
+        if err != nil </span><span class="cov8" title="1">{
+                return newErrorResponse(http.StatusNoContent, "couldn't request POST: %s", err)
+        }</span>
+
+        <span class="cov8" title="1">return f.Do(req)</span>
+}
+
+// Put do request with HTTP using HTTP Verb PUT
+func (f *Fetch) Put(url string, reader io.Reader) (*Response, error) <span class="cov8" title="1">{
+        req, err := http.NewRequest(http.MethodPut, url, reader)
+        if err != nil </span><span class="cov8" title="1">{
+                return newErrorResponse(http.StatusNoContent, "couldn't request PUT: %s", err)
+        }</span>
+
+        <span class="cov8" title="1">return f.Do(req)</span>
+}
+
+// Delete do request with HTTP using HTTP Verb DELETE
+func (f *Fetch) Delete(url string, reader io.Reader) (*Response, error) <span class="cov8" title="1">{
+        req, err := http.NewRequest(http.MethodDelete, url, reader)
+        if err != nil </span><span class="cov8" title="1">{
+                return newErrorResponse(http.StatusNoContent, "couldn't request DELETE: %s", err)
+        }</span>
+        <span class="cov8" title="1">return f.Do(req)</span>
+}
+
+// Patch do request with HTTP using HTTP Verb PATCH
+func (f *Fetch) Patch(url string, reader io.Reader) (*Response, error) <span class="cov8" title="1">{
+        req, err := http.NewRequest(http.MethodPatch, url, reader)
+        if err != nil </span><span class="cov8" title="1">{
+                return newErrorResponse(http.StatusNoContent, "couldn't request PATCH: %s", err)
+        }</span>
+        <span class="cov8" title="1">return f.Do(req)</span>
+}
+
+// Options do request with HTTP using HTTP Verb OPTIONS
+func (f *Fetch) Options(url string, reader io.Reader) (*Response, error) <span class="cov8" title="1">{
+        req, err := http.NewRequest(http.MethodOptions, url, reader)
+        if err != nil </span><span class="cov8" title="1">{
+                return newErrorResponse(http.StatusNoContent, "couldn't request OPTIONS: %s", err)
+        }</span>
+        <span class="cov8" title="1">return f.Do(req)</span>
+}
+
+// DoWithContext execute any kind of request passing context
+func (f *Fetch) DoWithContext(ctx context.Context, req *http.Request) (*Response, error) <span class="cov8" title="1">{
+        if f.Option.Header != nil </span><span class="cov8" title="1">{
+                req.Header = f.Option.Header
+        }</span>
+
+        <span class="cov8" title="1">return f.makeResponse(ctxhttp.Do(ctx, f.Client, req))</span>
+}
+
+// GetWithContext execute DoWithContext but define request to method GET
+func (f *Fetch) GetWithContext(ctx context.Context, url string, reader io.Reader) (*Response, error) <span class="cov8" title="1">{
+        req, err := http.NewRequest(http.MethodGet, url, reader)
+        if err != nil </span><span class="cov8" title="1">{
+                return newErrorResponse(http.StatusNoContent, "couldn't request GET: %s", err)
+        }</span>
+
+        <span class="cov8" title="1">return f.DoWithContext(ctx, req)</span>
+}
+
+// PostWithContext execute DoWithContext but define request to method POST
+func (f *Fetch) PostWithContext(ctx context.Context, url string, reader io.Reader) (*Response, error) <span class="cov8" title="1">{
+        req, err := http.NewRequest(http.MethodPost, url, reader)
+        if err != nil </span><span class="cov8" title="1">{
+                return newErrorResponse(http.StatusNoContent, "couldn't request POST: %s", err)
+        }</span>
+
+        <span class="cov8" title="1">return f.DoWithContext(ctx, req)</span>
+}
+
+// PutWithContext execute DoWithContext but define request to method PUT
+func (f *Fetch) PutWithContext(ctx context.Context, url string, reader io.Reader) (*Response, error) <span class="cov8" title="1">{
+        req, err := http.NewRequest(http.MethodPut, url, reader)
+        if err != nil </span><span class="cov8" title="1">{
+                return newErrorResponse(http.StatusNoContent, "couldn't request PUT: %s", err)
+        }</span>
+        <span class="cov8" title="1">return f.DoWithContext(ctx, req)</span>
+}
+
+// DeleteWithContext execute DoWithContext but define request to method DELETE
+func (f *Fetch) DeleteWithContext(ctx context.Context, url string, reader io.Reader) (*Response, error) <span class="cov8" title="1">{
+        req, err := http.NewRequest(http.MethodDelete, url, reader)
+        if err != nil </span><span class="cov8" title="1">{
+                return newErrorResponse(http.StatusNoContent, "couldn't request DELETE: %s", err)
+        }</span>
+
+        <span class="cov8" title="1">return f.DoWithContext(ctx, req)</span>
+}
+
+// PatchWithContext execute DoWithContext but define request to method PATCH
+func (f *Fetch) PatchWithContext(ctx context.Context, url string, reader io.Reader) (*Response, error) <span class="cov8" title="1">{
+        req, err := http.NewRequest(http.MethodPatch, url, reader)
+        if err != nil </span><span class="cov8" title="1">{
+                return newErrorResponse(http.StatusNoContent, "couldn't request PATCH: %s", err)
+        }</span>
+        <span class="cov8" title="1">return f.DoWithContext(ctx, req)</span>
+}
+
+// OptionsWithContext execute DoWithContext but define request to method OPTIONS
+func (f *Fetch) OptionsWithContext(ctx context.Context, url string, reader io.Reader) (*Response, error) <span class="cov8" title="1">{
+        req, err := http.NewRequest(http.MethodOptions, url, reader)
+        if err != nil </span><span class="cov8" title="1">{
+                return newErrorResponse(http.StatusNoContent, "couldn't request OPTIONS: %s", err)
+        }</span>
+        <span class="cov8" title="1">return f.DoWithContext(ctx, req)</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package fetch
+
+import (
+        "encoding/json"
+        "fmt"
+        "strings"
+)
+
+// NewStructIO this function will create a new
+// reader for your request.
+// if input is json format will convert to json or send directly
+//
+// Deprecated: Use NewReader instead.
+func NewStructIO(input interface{}) *strings.Reader <span class="cov8" title="1">{
+        return NewReader(input)
+}</span>
+
+// NewReader this function will return a new reader
+// if the format is JSON Valid format it will be convert
+// before send, if is not json will send as come.
+// Use a POINT for input variable
+func NewReader(input interface{}) *strings.Reader <span class="cov8" title="1">{
+        bs, err := json.Marshal(input)
+        if err != nil </span><span class="cov8" title="1">{
+                return strings.NewReader(fmt.Sprintf("error to read: %T", input))
+        }</span>
+
+        <span class="cov8" title="1">return strings.NewReader(fmt.Sprintf("%s", bs))</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package fetch
+
+import (
+        "encoding/json"
+        "fmt"
+        "io/ioutil"
+        "net/http"
+)
+
+// ErrEmptyBody returns when there is no body to read
+var ErrEmptyBody = fmt.Errorf("the body of response is empty")
+
+// Response helper work with response from http.Client
+type Response struct {
+        *http.Response
+        body []byte
+}
+
+// BodyIsEmpty return if body is empty or not.
+func (r *Response) BodyIsEmpty() bool <span class="cov8" title="1">{
+        return r.body == nil || len(r.body) == 0
+}</span>
+
+// Bytes return the Response in array of bytes.
+func (r *Response) Bytes() (_ []byte, err error) <span class="cov8" title="1">{
+        // if body is not empty return itself
+        if !r.BodyIsEmpty() </span><span class="cov8" title="1">{
+                return r.body, nil
+        }</span>
+
+        // if Body is empty
+        <span class="cov8" title="1">if r.Response == nil || r.Response.Body == nil </span><span class="cov8" title="1">{
+                return nil, ErrEmptyBody
+        }</span>
+
+        <span class="cov8" title="1">r.body, err = ioutil.ReadAll(r.Body)
+        return r.body, err</span>
+}
+
+// String return the Response in string format.
+// If has any error will return errors as string.
+func (r *Response) String() (s string) <span class="cov8" title="1">{
+        switch bs, err := r.Bytes(); </span>{
+        case err == ErrEmptyBody:<span class="cov8" title="1">
+                return ""</span>
+        case err != nil:<span class="cov0" title="0">
+                return err.Error()</span>
+        default:<span class="cov8" title="1">
+                return string(bs)</span>
+        }
+}
+
+// String return the Response in string format or error.
+func (r *Response) ToString() (string, error) <span class="cov8" title="1">{
+        bs, err := r.Bytes()
+        if err != nil </span><span class="cov8" title="1">{
+                return "", err
+        }</span>
+
+        <span class="cov8" title="1">return string(bs), nil</span>
+}
+
+// Decode body result into interface object.
+func (r *Response) Decode(i interface{}) error <span class="cov8" title="1">{
+        body, err := r.Bytes()
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return json.Unmarshal(body, i)</span>
+}
+
+// newErrorResponse return response if has any kind of error
+// could be from request or execution of Http.Client
+func newErrorResponse(status int, msg string, err error) (*Response, error) <span class="cov8" title="1">{
+        return &amp;Response{
+                Response: &amp;http.Response{
+                        StatusCode: status,
+                        Status:     http.StatusText(status),
+                },
+        }, fmt.Errorf(msg, err)
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package fetch
+
+// MustString ignore any error and return a string
+func MustString(s string, _ error) string <span class="cov8" title="1">{
+        return s
+}</span>
+
+// MustBytes ignore any error and return a slice of bytes
+func MustBytes(b []byte, _ error) []byte <span class="cov8" title="1">{
+        if b == nil </span><span class="cov8" title="1">{
+                b = []byte{}
+        }</span>
+
+        <span class="cov8" title="1">return b</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

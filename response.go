@@ -38,7 +38,20 @@ func (r *Response) Bytes() (_ []byte, err error) {
 }
 
 // String return the Response in string format.
-func (r *Response) String() (string, error) {
+// If has any error will return errors as string.
+func (r *Response) String() (s string) {
+	switch bs, err := r.Bytes(); {
+	case err == ErrEmptyBody:
+		return ""
+	case err != nil:
+		return err.Error()
+	default:
+		return string(bs)
+	}
+}
+
+// String return the Response in string format or error.
+func (r *Response) ToString() (string, error) {
 	bs, err := r.Bytes()
 	if err != nil {
 		return "", err
